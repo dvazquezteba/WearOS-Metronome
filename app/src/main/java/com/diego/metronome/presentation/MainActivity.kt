@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,10 +16,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowDropDownCircle
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Remove
@@ -34,11 +39,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.modifier.modifierLocalConsumer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -105,7 +108,8 @@ fun WelcomeScreen(onContinue: () -> Unit) {
             .background(MaterialTheme.colors.background),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = "Welcome!",
                 style = MaterialTheme.typography.title2,
@@ -157,7 +161,7 @@ fun MainScreen(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(40.dp))
             // BPM Display Box
             Box(
                 modifier = Modifier
@@ -171,36 +175,54 @@ fun MainScreen(navController: NavHostController) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(5.dp))
 
             // Control Buttons
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(onClick = { if (bpm > minBpm) bpm-- }) {
-                    Icon(Icons.Default.Remove, contentDescription = "Reduce BPM")
-                }
-
-                Button(onClick = { isPlaying = !isPlaying }) {
+                Button(
+                    onClick = { if (bpm > minBpm) bpm-- },
+                    modifier = Modifier.width(30.dp).height(30.dp)) {
                     Icon(
-                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Play"
+                        Icons.Default.Remove,
+                        contentDescription = "Reduce BPM",
+                        modifier = Modifier.height(15.dp).width(15.dp)
                     )
                 }
 
-                Button(onClick = { if (bpm < maxBpm) bpm++ }) {
-                    Icon(Icons.Default.Add, contentDescription = "Increase BPM")
+                Button(
+                    onClick = { isPlaying = !isPlaying },
+                    modifier = Modifier.width(30.dp).height(30.dp)) {
+                    Icon(
+                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = if (isPlaying) "Pause" else "Play",
+                        modifier = Modifier.height(15.dp).width(15.dp)
+                    )
+                }
+
+                Button(
+                    onClick = { if (bpm < maxBpm) bpm++ },
+                    modifier = Modifier.width(30.dp).height(30.dp)) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Increase BPM",
+                        modifier = Modifier.height(15.dp).width(15.dp)
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(15.dp))
 
             // Options Button
-            Button(onClick = { navController.navigate("settings") }) {
+            Button(
+                onClick = { navController.navigate("settings") },
+                modifier = Modifier.width(30.dp).height(30.dp) ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings"
+                    contentDescription = "Settings",
+                    modifier = Modifier.height(15.dp).width(15.dp)
                 )
             }
         }
@@ -215,9 +237,28 @@ fun SettingsScreen(navController: NavHostController) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("Settings")
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = { navController.popBackStack() }) {
-                Text("Back")
+            Spacer(modifier = Modifier.height(4.dp))
+            Button(onClick = { /* vibration settings */ },
+                modifier = Modifier.width(100.dp).height(20.dp)) {
+                Text("Vibration")
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Button(onClick = { /* vibration settings */ },
+                modifier = Modifier.width(100.dp).height(20.dp)) {
+                Text("Slider")
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Button(onClick = { /* vibration settings */ },
+                modifier = Modifier.width(100.dp).height(20.dp)) {
+                Text("AI corrector")
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Button(onClick = { navController.popBackStack() },
+                modifier = Modifier.width(30.dp).height(30.dp)) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardDoubleArrowDown,
+                    contentDescription = "Back"
+                )
             }
         }
     }
@@ -249,6 +290,7 @@ fun Greeting(greetingName: String) {
 }
 
 // previews para no usar el emulador/reloj
+/*
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
@@ -262,6 +304,7 @@ fun PreviewWelcomeScreen() {
         WelcomeScreen(onContinue = {})
     }
 }
+*/
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true, showBackground = true)
 @Composable
