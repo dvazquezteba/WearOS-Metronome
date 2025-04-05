@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -129,13 +130,14 @@ fun MainScreen(navController: NavHostController) {
     var isPlaying by remember { mutableStateOf(false) }
 
     val maxBpm = 240
-    val minBpm = 40
-    val arcSweepAngle = ((bpm - minBpm).toFloat() / (maxBpm - minBpm)) * 270f + 10f // mínimo ángulo visible
+    val minBpm = 30
+    val arcSweepAngle = ((bpm - minBpm).toFloat() / (maxBpm - minBpm)) * 228f + 28.5f // mínimo ángulo visible
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(8.dp),
+            .padding(2.dp)
+            .background(MaterialTheme.colors.background),
         contentAlignment = Alignment.Center
     ) {
         // Background arc
@@ -146,11 +148,11 @@ fun MainScreen(navController: NavHostController) {
                 (this.size.height - size) / 2
             )
             drawArc(
-                color = Color.Gray,
-                startAngle = 135f,
+                color = Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f), // a mano hasta que lo he podido quadrar
+                startAngle = 142f,
                 sweepAngle = arcSweepAngle,
                 useCenter = false,
-                style = Stroke(width = 12f, cap = StrokeCap.Round),
+                style = Stroke(width = 8f, cap = StrokeCap.Round),
                 topLeft = topLeft,
                 size = Size(size, size)
             )
@@ -165,8 +167,8 @@ fun MainScreen(navController: NavHostController) {
             // BPM Display Box
             Box(
                 modifier = Modifier
-                    .background(MaterialTheme.colors.primary.copy(alpha = 0.15f), shape = RoundedCornerShape(12.dp))
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .background(MaterialTheme.colors.primaryVariant.copy(alpha = 0.75f), shape = RoundedCornerShape(25.dp))
+                    .padding(horizontal = 10.dp, vertical = 10.dp)
             ) {
                 Text(
                     text = "$bpm BPM",
@@ -184,7 +186,8 @@ fun MainScreen(navController: NavHostController) {
             ) {
                 Button(
                     onClick = { if (bpm > minBpm) bpm-- },
-                    modifier = Modifier.width(30.dp).height(30.dp)) {
+                    modifier = Modifier.width(30.dp).height(30.dp)
+                ) {
                     Icon(
                         Icons.Default.Remove,
                         contentDescription = "Reduce BPM",
@@ -232,7 +235,9 @@ fun MainScreen(navController: NavHostController) {
 @Composable
 fun SettingsScreen(navController: NavHostController) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colors.background),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
