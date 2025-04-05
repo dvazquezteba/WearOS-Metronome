@@ -23,7 +23,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ArrowDropDownCircle
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Remove
@@ -140,6 +142,7 @@ fun MainScreen(navController: NavHostController) {
             .background(MaterialTheme.colors.background),
         contentAlignment = Alignment.Center
     ) {
+
         // Background arc
         Canvas(modifier = Modifier.fillMaxSize()) {
             val size = size.minDimension * 0.9f
@@ -163,7 +166,24 @@ fun MainScreen(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(30.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(0.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.Mic,
+                    contentDescription = "Listening",
+                    modifier = Modifier.height(12.dp).width(12.dp)
+                )
+                Icon(
+                    Icons.Default.BarChart,
+                    contentDescription = "Listening",
+                    modifier = Modifier.height(12.dp).width(12.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(5.dp))
             // BPM Display Box
             Box(
                 modifier = Modifier
