@@ -51,6 +51,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
@@ -206,32 +207,38 @@ fun MainScreen(navController: NavHostController) {
             ) {
                 Button(
                     onClick = { if (bpm > minBpm) bpm-- },
+                    colors = ButtonDefaults.buttonColors(Color.DarkGray.copy(alpha = 0.85f)),
                     modifier = Modifier.width(30.dp).height(30.dp)
                 ) {
                     Icon(
                         Icons.Default.Remove,
                         contentDescription = "Reduce BPM",
-                        modifier = Modifier.height(15.dp).width(15.dp)
+                        modifier = Modifier.height(15.dp).width(15.dp),
+                        tint = Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f)
                     )
                 }
 
                 Button(
                     onClick = { isPlaying = !isPlaying },
+                    colors = ButtonDefaults.buttonColors(Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f)),
                     modifier = Modifier.width(30.dp).height(30.dp)) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = if (isPlaying) "Pause" else "Play",
-                        modifier = Modifier.height(15.dp).width(15.dp)
+                        modifier = Modifier.height(15.dp).width(15.dp),
+                        tint = MaterialTheme.colors.onBackground
                     )
                 }
 
                 Button(
                     onClick = { if (bpm < maxBpm) bpm++ },
+                    colors = ButtonDefaults.buttonColors(Color.DarkGray.copy(alpha = 0.85f)),
                     modifier = Modifier.width(30.dp).height(30.dp)) {
                     Icon(
                         Icons.Default.Add,
                         contentDescription = "Increase BPM",
-                        modifier = Modifier.height(15.dp).width(15.dp)
+                        modifier = Modifier.height(15.dp).width(15.dp),
+                        tint = Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f)
                     )
                 }
             }
@@ -241,11 +248,13 @@ fun MainScreen(navController: NavHostController) {
             // Options Button
             Button(
                 onClick = { navController.navigate("settings") },
+                colors = ButtonDefaults.buttonColors(Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f)),
                 modifier = Modifier.width(30.dp).height(30.dp) ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "Settings",
-                    modifier = Modifier.height(15.dp).width(15.dp)
+                    modifier = Modifier.height(13.dp).width(13.dp),
+                    tint = MaterialTheme.colors.onBackground
                 )
             }
         }
