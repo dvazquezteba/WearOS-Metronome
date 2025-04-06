@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +50,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
@@ -56,12 +59,15 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.diego.metronome.R
 import com.diego.metronome.presentation.theme.MetronomeTheme
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,10 +90,13 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     val navController = rememberSwipeDismissableNavController()
 
-    SwipeDismissableNavHost( // No funcionaba con el NavHost
+    // Aquí lo creas a nivel de actividad
+    val settingsViewModel: SettingsViewModel = viewModel()
+
+    SwipeDismissableNavHost(
         navController = navController,
         startDestination = "welcome"
-    ) { // aquí las pantallas
+    ) {
         composable("welcome") {
             WelcomeScreen {
                 navController.navigate("main") {
@@ -96,10 +105,10 @@ fun AppNavigation() {
             }
         }
         composable("main") {
-            MainScreen(navController)
+            MainScreen(navController = navController, viewModel = settingsViewModel)
         }
         composable("settings") {
-            SettingsScreen(navController)
+            SettingsScreen(navController = navController, viewModel = settingsViewModel)
         }
     }
 }
@@ -128,7 +137,10 @@ fun WelcomeScreen(onContinue: () -> Unit) {
 }
 
 @Composable
-fun MainScreen(navController: NavHostController) {
+fun MainScreen(
+    navController: NavHostController,
+    viewModel: SettingsViewModel
+) {
     var bpm by remember { mutableIntStateOf(120) }
     var isPlaying by remember { mutableStateOf(false) }
 
@@ -188,7 +200,8 @@ fun MainScreen(navController: NavHostController) {
             // BPM Display Box
             Box(
                 modifier = Modifier
-                    .background(MaterialTheme.colors.primaryVariant.copy(alpha = 0.75f), shape = RoundedCornerShape(25.dp))
+                    .background(MaterialTheme.colors.primaryVariant.copy(alpha = 0.75f),
+                        shape = RoundedCornerShape(25.dp))
                     .padding(horizontal = 10.dp, vertical = 10.dp)
             ) {
                 Text(
@@ -220,7 +233,8 @@ fun MainScreen(navController: NavHostController) {
 
                 Button(
                     onClick = { isPlaying = !isPlaying },
-                    colors = ButtonDefaults.buttonColors(Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f)),
+                    colors = ButtonDefaults.buttonColors(
+                        Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f)),
                     modifier = Modifier.width(30.dp).height(30.dp)) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -248,7 +262,8 @@ fun MainScreen(navController: NavHostController) {
             // Options Button
             Button(
                 onClick = { navController.navigate("settings") },
-                colors = ButtonDefaults.buttonColors(Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f)),
+                colors = ButtonDefaults.buttonColors(
+                    Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f)),
                 modifier = Modifier.width(30.dp).height(30.dp) ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
@@ -261,8 +276,40 @@ fun MainScreen(navController: NavHostController) {
     }
 }
 
+class SettingsViewModel : ViewModel() {
+
+    private val _vibrationMode = MutableStateFlow(true)
+    val vibrationMode: StateFlow<Boolean> = _vibrationMode
+
+    private val _sliderMode = MutableStateFlow(true)
+    val sliderMode: StateFlow<Boolean> = _sliderMode
+
+    private val _aiMode = MutableStateFlow(true)
+    val aiMode: StateFlow<Boolean> = _aiMode
+
+    fun toggleVibration() {
+        _vibrationMode.value = !_vibrationMode.value
+    }
+
+    fun toggleSlider() {
+        _sliderMode.value = !_sliderMode.value
+    }
+
+    fun toggleAI() {
+        _aiMode.value = !_aiMode.value
+    }
+}
+
 @Composable
-fun SettingsScreen(navController: NavHostController) {
+fun SettingsScreen(
+    navController: NavHostController,
+    viewModel: SettingsViewModel = viewModel()
+) {
+
+    val vibrationMode by viewModel.vibrationMode.collectAsState()
+    val sliderMode by viewModel.sliderMode.collectAsState()
+    val aiMode by viewModel.aiMode.collectAsState()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -271,24 +318,47 @@ fun SettingsScreen(navController: NavHostController) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("Settings")
-            Spacer(modifier = Modifier.height(4.dp))
-            Button(onClick = { /* vibration settings */ },
-                modifier = Modifier.width(100.dp).height(20.dp)) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = { viewModel.toggleVibration() },
+                colors = if (vibrationMode)
+                    ButtonDefaults.buttonColors(Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f))
+                else
+                    ButtonDefaults.buttonColors(Color.Gray.copy(alpha = 0.75f)),
+                modifier = Modifier.width(135.dp).height(30.dp)
+            ) {
                 Text("Vibration")
             }
-            Spacer(modifier = Modifier.height(4.dp))
-            Button(onClick = { /* vibration settings */ },
-                modifier = Modifier.width(100.dp).height(20.dp)) {
+
+            Spacer(modifier = Modifier.height(6.dp))
+            Button(
+                onClick = { viewModel.toggleSlider() },
+                colors = if (sliderMode)
+                    ButtonDefaults.buttonColors(Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f))
+                else
+                    ButtonDefaults.buttonColors(Color.Gray.copy(alpha = 0.75f)),
+                modifier = Modifier.width(135.dp).height(30.dp)
+            ) {
                 Text("Slider")
             }
-            Spacer(modifier = Modifier.height(4.dp))
-            Button(onClick = { /* vibration settings */ },
-                modifier = Modifier.width(100.dp).height(20.dp)) {
+
+            Spacer(modifier = Modifier.height(6.dp))
+            Button(
+                onClick = { viewModel.toggleAI() },
+                colors = if (aiMode)
+                    ButtonDefaults.buttonColors(Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f))
+                else
+                    ButtonDefaults.buttonColors(Color.Gray.copy(alpha = 0.75f)),
+                modifier = Modifier.width(135.dp).height(30.dp)
+            ) {
                 Text("AI corrector")
             }
-            Spacer(modifier = Modifier.height(4.dp))
-            Button(onClick = { navController.popBackStack() },
-                modifier = Modifier.width(30.dp).height(30.dp)) {
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.width(30.dp).height(30.dp)
+            ) {
                 Icon(
                     imageVector = Icons.Default.KeyboardDoubleArrowDown,
                     contentDescription = "Back"
@@ -344,7 +414,10 @@ fun PreviewWelcomeScreen() {
 @Composable
 fun PreviewMainScreen() {
     MetronomeTheme {
-        MainScreen(navController = rememberSwipeDismissableNavController())
+        MainScreen(
+            navController = rememberSwipeDismissableNavController(),
+            viewModel = SettingsViewModel()
+        )
     }
 }
 
