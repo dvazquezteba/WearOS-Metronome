@@ -3,6 +3,9 @@ package com.diego.metronome.presentation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.background
@@ -136,17 +139,46 @@ fun WelcomeScreen(onContinue: () -> Unit) {
     }
 }
 
+class MainViewModel : ViewModel() {
+    private val _bpm = MutableStateFlow(120)
+    val bpm: StateFlow<Int> = _bpm
+
+    private val _isPlaying = MutableStateFlow(false)
+    val isPlaying: StateFlow<Boolean> = _isPlaying
+
+    private val maxBpm = 240
+    private val minBpm = 30
+
+    fun increaseBpm() {
+        if (_bpm.value < maxBpm) _bpm.value++
+    }
+
+    fun decreaseBpm() {
+        if (_bpm.value > minBpm) _bpm.value--
+    }
+
+    fun togglePlaying() {
+        _isPlaying.value = !_isPlaying.value
+    }
+}
+
 @Composable
 fun MainScreen(
     navController: NavHostController,
-    viewModel: SettingsViewModel
+    viewModel: SettingsViewModel,
+    mainViewModel: MainViewModel = viewModel()
 ) {
-    var bpm by remember { mutableIntStateOf(120) }
-    var isPlaying by remember { mutableStateOf(false) }
+    val bpm by mainViewModel.bpm.collectAsState()
+    val isPlaying by mainViewModel.isPlaying.collectAsState()
 
     val maxBpm = 240
     val minBpm = 30
-    val arcSweepAngle = ((bpm - minBpm).toFloat() / (maxBpm - minBpm)) * 228f + 28.5f // mínimo ángulo visible
+    val targetSweepAngle = ((bpm - minBpm).toFloat() / (maxBpm - minBpm)) * 228f + 28.5f
+    val animatedSweepAngle by animateFloatAsState(
+        targetValue = targetSweepAngle,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+        label = "ArcSweepAnimation"
+    )
 
     Box(
         modifier = Modifier
@@ -155,8 +187,6 @@ fun MainScreen(
             .background(MaterialTheme.colors.background),
         contentAlignment = Alignment.Center
     ) {
-
-        // Background arc
         Canvas(modifier = Modifier.fillMaxSize()) {
             val size = size.minDimension * 0.9f
             val topLeft = Offset(
@@ -164,16 +194,17 @@ fun MainScreen(
                 (this.size.height - size) / 2
             )
             drawArc(
-                color = Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f), // a mano hasta que lo he podido quadrar
+                color = Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f),
                 startAngle = 142f,
-                sweepAngle = arcSweepAngle,
+                sweepAngle = animatedSweepAngle,
                 useCenter = false,
                 style = Stroke(width = 8f, cap = StrokeCap.Round),
                 topLeft = topLeft,
                 size = Size(size, size)
             )
         }
-        // Main content
+
+
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -184,20 +215,13 @@ fun MainScreen(
                 horizontalArrangement = Arrangement.spacedBy(0.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    Icons.Default.Mic,
-                    contentDescription = "Listening",
-                    modifier = Modifier.height(12.dp).width(12.dp)
-                )
-                Icon(
-                    Icons.Default.BarChart,
-                    contentDescription = "Listening",
-                    modifier = Modifier.height(12.dp).width(12.dp)
-                )
+                Icon(Icons.Default.Mic, contentDescription = "Listening",
+                    modifier = Modifier.height(12.dp).width(12.dp))
+                Icon(Icons.Default.BarChart, contentDescription = "Listening",
+                    modifier = Modifier.height(12.dp).width(12.dp))
             }
 
             Spacer(modifier = Modifier.height(5.dp))
-            // BPM Display Box
             Box(
                 modifier = Modifier
                     .background(MaterialTheme.colors.primaryVariant.copy(alpha = 0.75f),
@@ -213,29 +237,26 @@ fun MainScreen(
 
             Spacer(modifier = Modifier.height(5.dp))
 
-            // Control Buttons
             Row(
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Button(
-                    onClick = { if (bpm > minBpm) bpm-- },
+                    onClick = { mainViewModel.decreaseBpm() },
                     colors = ButtonDefaults.buttonColors(Color.DarkGray.copy(alpha = 0.85f)),
                     modifier = Modifier.width(30.dp).height(30.dp)
                 ) {
-                    Icon(
-                        Icons.Default.Remove,
-                        contentDescription = "Reduce BPM",
+                    Icon(Icons.Default.Remove, contentDescription = "Reduce BPM",
                         modifier = Modifier.height(15.dp).width(15.dp),
-                        tint = Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f)
-                    )
+                        tint = Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f))
                 }
 
                 Button(
-                    onClick = { isPlaying = !isPlaying },
+                    onClick = { mainViewModel.togglePlaying() },
                     colors = ButtonDefaults.buttonColors(
                         Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f)),
-                    modifier = Modifier.width(30.dp).height(30.dp)) {
+                    modifier = Modifier.width(30.dp).height(30.dp)
+                ) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = if (isPlaying) "Pause" else "Play",
@@ -245,26 +266,24 @@ fun MainScreen(
                 }
 
                 Button(
-                    onClick = { if (bpm < maxBpm) bpm++ },
+                    onClick = { mainViewModel.increaseBpm() },
                     colors = ButtonDefaults.buttonColors(Color.DarkGray.copy(alpha = 0.85f)),
-                    modifier = Modifier.width(30.dp).height(30.dp)) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = "Increase BPM",
+                    modifier = Modifier.width(30.dp).height(30.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Increase BPM",
                         modifier = Modifier.height(15.dp).width(15.dp),
-                        tint = Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f)
-                    )
+                        tint = Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f))
                 }
             }
 
             Spacer(modifier = Modifier.height(15.dp))
 
-            // Options Button
             Button(
                 onClick = { navController.navigate("settings") },
                 colors = ButtonDefaults.buttonColors(
                     Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f)),
-                modifier = Modifier.width(30.dp).height(30.dp) ) {
+                modifier = Modifier.width(30.dp).height(30.dp)
+            ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "Settings",
