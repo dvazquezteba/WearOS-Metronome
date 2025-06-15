@@ -9,7 +9,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,12 +19,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.ArrowDropDownCircle
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.filled.Mic
@@ -34,21 +30,19 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.paint
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,15 +56,17 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
-import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.diego.metronome.R
 import com.diego.metronome.presentation.theme.MetronomeTheme
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import androidx.compose.animation.animateColorAsState
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -171,6 +167,18 @@ fun MainScreen(
     val bpm by mainViewModel.bpm.collectAsState()
     val isPlaying by mainViewModel.isPlaying.collectAsState()
 
+    //val context = LocalContext.current
+    //val vibrator = context.getSystemService(Vibrator::class.java)
+
+    var pulseActive by remember { mutableStateOf(false) }
+
+    val pulseDelay = (60000 / bpm).toLong()
+
+    val animatedColor by animateColorAsState(
+        targetValue = if (pulseActive) Color.Gray else MaterialTheme.colors.background,
+        animationSpec = tween(durationMillis = 300)
+    )
+
     val maxBpm = 240
     val minBpm = 30
     val targetSweepAngle = ((bpm - minBpm).toFloat() / (maxBpm - minBpm)) * 228f + 28.5f
@@ -180,11 +188,23 @@ fun MainScreen(
         label = "ArcSweepAnimation"
     )
 
+    LaunchedEffect(isPlaying, bpm) {
+        while (isPlaying) {
+            pulseActive = true
+            // vibration will be here <--
+            delay(100)  // duracion del pulso visual, mirar cambios
+            pulseActive = false
+            delay(pulseDelay - 100)
+        }
+        pulseActive = false
+    }
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(2.dp)
-            .background(MaterialTheme.colors.background),
+            .background(animatedColor),
         contentAlignment = Alignment.Center
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -194,7 +214,7 @@ fun MainScreen(
                 (this.size.height - size) / 2
             )
             drawArc(
-                color = Color.Gray.copy(alpha = 0.75f).copy(blue = 0.75f).copy(red = 0.4f),
+                color = Color.Gray.copy(alpha = 0.4f, blue = 0.75f, red = 0.4f),
                 startAngle = 142f,
                 sweepAngle = animatedSweepAngle,
                 useCenter = false,
