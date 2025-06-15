@@ -66,6 +66,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 
 
 class MainActivity : ComponentActivity() {
@@ -179,6 +181,23 @@ fun MainScreen(
         animationSpec = tween(durationMillis = 300)
     )
 
+    var decreasePressed by remember { mutableStateOf(false) }
+    var increasePressed by remember { mutableStateOf(false) }
+
+    LaunchedEffect(decreasePressed) {
+        while (decreasePressed) {
+            mainViewModel.decreaseBpm()
+            delay(150)
+        }
+    }
+
+    LaunchedEffect(increasePressed) {
+        while (increasePressed) {
+            mainViewModel.increaseBpm()
+            delay(150)
+        }
+    }
+
     val maxBpm = 240
     val minBpm = 30
     val targetSweepAngle = ((bpm - minBpm).toFloat() / (maxBpm - minBpm)) * 228f + 28.5f
@@ -261,10 +280,22 @@ fun MainScreen(
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Decrease bmp
                 Button(
                     onClick = { mainViewModel.decreaseBpm() },
                     colors = ButtonDefaults.buttonColors(Color.DarkGray.copy(alpha = 0.85f)),
-                    modifier = Modifier.width(30.dp).height(30.dp)
+                    modifier = Modifier
+                        .width(30.dp)
+                        .height(30.dp)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = {
+                                    decreasePressed = true
+                                    tryAwaitRelease()
+                                    decreasePressed = false
+                                }
+                            )
+                        }
                 ) {
                     Icon(Icons.Default.Remove, contentDescription = "Reduce BPM",
                         modifier = Modifier.height(15.dp).width(15.dp),
@@ -284,11 +315,22 @@ fun MainScreen(
                         tint = MaterialTheme.colors.onBackground
                     )
                 }
-
+                // Increase bmp
                 Button(
                     onClick = { mainViewModel.increaseBpm() },
                     colors = ButtonDefaults.buttonColors(Color.DarkGray.copy(alpha = 0.85f)),
-                    modifier = Modifier.width(30.dp).height(30.dp)
+                    modifier = Modifier
+                        .width(30.dp)
+                        .height(30.dp)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = {
+                                    increasePressed = true
+                                    tryAwaitRelease()
+                                    increasePressed = false
+                                }
+                            )
+                        }
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Increase BPM",
                         modifier = Modifier.height(15.dp).width(15.dp),
