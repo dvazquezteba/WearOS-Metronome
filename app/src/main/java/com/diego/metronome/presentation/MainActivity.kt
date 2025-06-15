@@ -178,7 +178,7 @@ fun MainScreen(
 
     val animatedColor by animateColorAsState(
         targetValue = if (pulseActive) Color.Gray else MaterialTheme.colors.background,
-        animationSpec = tween(durationMillis = 300)
+        animationSpec = tween(durationMillis = 200)
     )
 
     var decreasePressed by remember { mutableStateOf(false) }
